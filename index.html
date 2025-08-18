@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Pixel Art App</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1 class="titulo">Pixel Art App</h1>
+
+<div class="grid-container">
+  <div id="grid"></div>
+</div>
+
+  <div id="controls" style="text-align: center; margin-bottom: 15px;">
+    <label>Color: <input type="color" id="colorPicker" value="#000000"></label>
+    <label>Tamaño: <input type="number" id="sizePicker" min="5" max="50" value="16"></label>
+    <button id="makeGrid">Crear Grid</button>
+    <button id="clearGrid">Limpiar</button>
+    <button id="eraser">Borrador OFF</button>
+  </div>
+
+  <div id="pixelCanvas" style="margin: auto; background: white; border-radius: 12px; padding: 10px; display: inline-block;"></div>
+
+  <script>
+    const pixelCanvas = document.getElementById("pixelCanvas");
+    const colorPicker = document.getElementById("colorPicker");
+    const sizePicker = document.getElementById("sizePicker");
+    const makeGridBtn = document.getElementById("makeGrid");
+    const clearGridBtn = document.getElementById("clearGrid");
+    const eraserBtn = document.getElementById("eraser");
+
+    let painting = false;
+    let erasing = false;
+    let holdTimer;
+    let eraseMode = false; // activa/desactiva el borrador
+
+    // Crear cuadrícula
+  function makeGrid(size) {
+    // 📱 En móviles limitar tamaño a 25
+      if (size > 37) size = 37;  // 👈 límite máximo
+      if (size < 1) size = 1;    // 👈 para que no pongan 0 o negativo
+    if (window.innerWidth < 600 && size > 25) {
+      size = 25;
+      alert("En móviles el tamaño máximo es 25 para que no explote el scroll 😅");
+    }
+
+    pixelCanvas.innerHTML = "";
+    pixelCanvas.style.display = "grid";
+    pixelCanvas.style.gridTemplateColumns = `repeat(${size}, 20px)`;
+    pixelCanvas.style.gridTemplateRows = `repeat(${size}, 20px)`;
+
+    for (let i = 0; i < size * size; i++) {
+      const pixel = document.createElement("div");
+      pixel.style.width = "20px";
+      pixel.style.height = "20px";
+      pixel.style.border = "1px solid #ccc";
+      pixel.style.backgroundColor = "white";
+      pixelCanvas.appendChild(pixel);
+
+        // Clic normal (pintar si no es borrador)
+        pixel.addEventListener("click", () => {
+          if (!eraseMode) pixel.style.backgroundColor = colorPicker.value;
+        });
+
+        // Doble clic → borrar un pixel
+        pixel.addEventListener("dblclick", (e) => {
+          e.preventDefault();
+          if (eraseMode) pixel.style.backgroundColor = "white";
+        });
+
+        // Borrar/pintar al arrastrar
+        pixel.addEventListener("mousemove", () => {
+          if (painting && !eraseMode) {
+            pixel.style.backgroundColor = colorPicker.value;
+          }
+          if (erasing && eraseMode) {
+            pixel.style.backgroundColor = "white";
+          }
+        });
+
+        pixelCanvas.appendChild(pixel);
+      }
+    }
+
+    // Activar modo pintar
+    pixelCanvas.addEventListener("mousedown", () => {
+      if (!eraseMode) {
+        holdTimer = setTimeout(() => {
+          painting = true;
+        }, 1000);
+      } else {
+        holdTimer = setTimeout(() => {
+          erasing = true;
+        }, 1500);
+      }
+    });
+
+    pixelCanvas.addEventListener("mouseup", () => {
+      clearTimeout(holdTimer);
+      painting = false;
+      erasing = false;
+    });
+
+    // Pantallas táctiles
+    pixelCanvas.addEventListener("touchstart", () => {
+      if (!eraseMode) {
+        holdTimer = setTimeout(() => {
+          painting = true;
+        }, 1000);
+      } else {
+        holdTimer = setTimeout(() => {
+          erasing = true;
+        }, 1500);
+      }
+    });
+
+    pixelCanvas.addEventListener("touchend", () => {
+      clearTimeout(holdTimer);
+      painting = false;
+      erasing = false;
+    });
+
+    // Limpiar cuadrícula
+    function clearGrid() {
+      const pixels = pixelCanvas.querySelectorAll("div");
+      pixels.forEach(pixel => pixel.style.backgroundColor = "white");
+    }
+
+    // Activar/desactivar borrador
+    eraserBtn.addEventListener("click", () => {
+      eraseMode = !eraseMode;
+      eraserBtn.textContent = eraseMode ? "Borrador ON" : "Borrador OFF";
+    });
+
+    makeGridBtn.addEventListener("click", () => makeGrid(parseInt(sizePicker.value)));
+    clearGridBtn.addEventListener("click", clearGrid);
+
+    // Grid inicial
+    makeGrid(parseInt(sizePicker.value));
+  </script>
+</body>
+</html>
