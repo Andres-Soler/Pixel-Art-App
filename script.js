@@ -1,3 +1,17 @@
+let touchStartY = 0;
+document.addEventListener('touchstart', (e) => {
+  touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+document.addEventListener('touchmove', (e) => {
+  const touchY = e.touches[0].clientY;
+  const scrollTop = window.scrollY || document.documentElement.scrollTop;
+  // Bloquear solo si estamos en el canvas y desplazamiento hacia abajo
+  if (scrollTop === 0 && touchY > touchStartY) {
+    e.preventDefault();
+  }
+}, { passive: false });
+
 const pixelCanvas = document.getElementById("pixelCanvas");
 const colorPicker = document.getElementById("colorPicker");
 const sizePicker = document.getElementById("sizePicker");
