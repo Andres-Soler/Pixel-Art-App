@@ -81,6 +81,7 @@ body {
   border-radius: 12px;
   padding: 10px;
   display: inline-block;
+  overscroll-behavior: contain;
 }
 
 
@@ -91,3 +92,10 @@ body {
   margin-top: 15px;
   border-radius: 15px;
 }
+
+html, body {
+  overscroll-behavior: none; /* Chrome, Edge */
+  -ms-overflow-style: none;  /* IE 10+ */
+  scrollbar-width: none;      /* Firefox */
+}
+
