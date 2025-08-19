@@ -6,10 +6,11 @@ const clearGridBtn = document.getElementById("clearGrid");
 const eraserBtn = document.getElementById("eraser");
 const undoBtn = document.getElementById("undoBtn");
 
-let eraseMode = false; // modo borrador
-let isDrawing = false; // está arrastrando
-let history = [];      // pila de acciones
-let currentStroke = []; // trazo actual
+let eraseMode = false;
+let isDrawing = false;
+let history = [];
+let currentStroke = [];
+let lastTap = 0;
 
 // Crear cuadrícula
 function makeGrid(size) {
@@ -27,7 +28,7 @@ function makeGrid(size) {
 
   for (let i = 0; i < size * size; i++) {
     const pixel = document.createElement("div");
-    pixel.classList.add("pixel"); // importante para los eventos
+    pixel.classList.add("pixel");
     pixel.style.width = "20px";
     pixel.style.height = "20px";
     pixel.style.border = "1px solid #ccc";
@@ -51,7 +52,7 @@ function applyColor(pixel, color) {
   }
 }
 
-// Terminar un trazo y guardarlo en el historial
+// Terminar trazo
 function endStroke() {
   if (currentStroke.length > 0) {
     history.push(currentStroke);
@@ -59,7 +60,7 @@ function endStroke() {
   }
 }
 
-// Eventos de mouse
+// --- MOUSE ---
 pixelCanvas.addEventListener("mousedown", (e) => {
   if (e.target.classList.contains("pixel")) {
     isDrawing = true;
@@ -77,10 +78,10 @@ pixelCanvas.addEventListener("mousemove", (e) => {
 
 document.addEventListener("mouseup", () => {
   isDrawing = false;
-  endStroke(); // guardar trazo completo
+  endStroke();
 });
 
-// Eventos táctiles
+// --- TOUCH ---
 pixelCanvas.addEventListener("touchstart", (e) => {
   const touch = e.touches[0];
   const element = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -89,7 +90,6 @@ pixelCanvas.addEventListener("touchstart", (e) => {
     const color = eraseMode ? "white" : colorPicker.value;
     applyColor(element, color);
   }
-  e.preventDefault();
 }, { passive: false });
 
 pixelCanvas.addEventListener("touchmove", (e) => {
@@ -100,66 +100,19 @@ pixelCanvas.addEventListener("touchmove", (e) => {
     const color = eraseMode ? "white" : colorPicker.value;
     applyColor(element, color);
   }
-  e.preventDefault();
+  e.preventDefault(); // bloquea scroll y pull-to-refresh
 }, { passive: false });
 
-pixelCanvas.addEventListener("touchend", () => {
-  isDrawing = false;
-  endStroke(); // guardar trazo completo
-});
-
-// Evitar scroll/pull-to-refresh en todo el body mientras se dibuja
-document.body.addEventListener("touchmove", (e) => {
-  if (isDrawing) e.preventDefault();
-}, { passive: false });
-
-// Limpiar cuadrícula
-function clearGrid() {
-  const pixels = pixelCanvas.querySelectorAll(".pixel");
-  pixels.forEach(pixel => pixel.style.backgroundColor = "white");
-  history = [];
-}
-
-// Activar/desactivar borrador
-eraserBtn.addEventListener("click", () => {
-  eraseMode = !eraseMode;
-  eraserBtn.textContent = eraseMode ? "Borrador ON" : "Borrador OFF";
-});
-
-// Deshacer
-undoBtn.addEventListener("click", () => {
-  if (history.length === 0) return;
-  const lastStroke = history.pop();
-  lastStroke.forEach(item => item.pixel.style.backgroundColor = item.oldColor);
-});
-
-// Botones de control
-makeGridBtn.addEventListener("click", () => makeGrid(parseInt(sizePicker.value)));
-clearGridBtn.addEventListener("click", clearGrid);
-
-// Grid inicial
-makeGrid(parseInt(sizePicker.value));
-
-// Doble clic (ratón) para borrar cuando el borrador está OFF
-pixelCanvas.addEventListener("dblclick", (e) => {
-  if (!eraseMode && e.target.classList.contains("pixel")) {
-    const pixel = e.target;
-    const oldColor = pixel.style.backgroundColor;
-    const newColor = "white";
-    savePixel(pixel, oldColor, newColor); // guardamos en el trazo actual
-    pixel.style.backgroundColor = newColor;
-    endStroke(); // se guarda como un trazo completo para undo
-  }
-});
-
-// Doble toque (pantalla táctil) para borrar cuando el borrador está OFF
-let lastTap = 0;
 pixelCanvas.addEventListener("touchend", (e) => {
+  isDrawing = false;
+  endStroke();
+
+  // Doble toque
   const currentTime = new Date().getTime();
   const tapLength = currentTime - lastTap;
   lastTap = currentTime;
 
-  if (tapLength < 300) { // si el doble toque ocurre en <300ms
+  if (tapLength < 300) {
     const touch = e.changedTouches[0];
     const element = document.elementFromPoint(touch.clientX, touch.clientY);
     if (!eraseMode && element && element.classList.contains("pixel")) {
@@ -169,5 +122,46 @@ pixelCanvas.addEventListener("touchend", (e) => {
       element.style.backgroundColor = newColor;
       endStroke();
     }
+  }
+}, { passive: false });
+
+// Bloquear scroll general mientras dibujas
+document.body.addEventListener("touchmove", (e) => {
+  if (isDrawing) e.preventDefault();
+}, { passive: false });
+
+// --- CONTROLES ---
+function clearGrid() {
+  const pixels = pixelCanvas.querySelectorAll(".pixel");
+  pixels.forEach(pixel => pixel.style.backgroundColor = "white");
+  history = [];
+}
+
+eraserBtn.addEventListener("click", () => {
+  eraseMode = !eraseMode;
+  eraserBtn.textContent = eraseMode ? "Borrador ON" : "Borrador OFF";
+});
+
+undoBtn.addEventListener("click", () => {
+  if (history.length === 0) return;
+  const lastStroke = history.pop();
+  lastStroke.forEach(item => item.pixel.style.backgroundColor = item.oldColor);
+});
+
+makeGridBtn.addEventListener("click", () => makeGrid(parseInt(sizePicker.value)));
+clearGridBtn.addEventListener("click", clearGrid);
+
+// --- INICIAL ---
+makeGrid(parseInt(sizePicker.value));
+
+// --- DOBLE CLIC (ratón) ---
+pixelCanvas.addEventListener("dblclick", (e) => {
+  if (!eraseMode && e.target.classList.contains("pixel")) {
+    const pixel = e.target;
+    const oldColor = pixel.style.backgroundColor;
+    const newColor = "white";
+    savePixel(pixel, oldColor, newColor);
+    pixel.style.backgroundColor = newColor;
+    endStroke();
   }
 });
