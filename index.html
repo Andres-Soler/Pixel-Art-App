@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pixel Art App</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1 class="titulo">Pixel Art App</h1>
+
+  <div id="controls" style="text-align: center; margin-bottom: 15px;">
+    <label>Color: <input type="color" id="colorPicker" value="#000000"></label>
+    <label>Tamaño: <input type="number" id="sizePicker" min="5" max="50" value="16"></label>
+    <button id="makeGrid">Crear Grid</button>
+    <button id="clearGrid">Limpiar</button>
+    <button id="eraser">Borrador OFF</button>
+    <button id="undoBtn">↩️ Deshacer</button>
+  </div>
+
+  <div id="pixelCanvas" style="margin: auto; background: white; border-radius: 12px; padding: 10px; display: inline-block;"></div>
+
+  <!-- 👇 Llamamos el JS externo -->
+  <script src="script.js"></script>
+</body>
+</html>
+
