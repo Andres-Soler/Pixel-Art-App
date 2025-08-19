@@ -90,7 +90,7 @@ pixelCanvas.addEventListener("touchstart", (e) => {
     applyColor(element, color);
   }
   e.preventDefault();
-});
+}, { passive: false });
 
 pixelCanvas.addEventListener("touchmove", (e) => {
   if (!isDrawing) return;
@@ -101,12 +101,17 @@ pixelCanvas.addEventListener("touchmove", (e) => {
     applyColor(element, color);
   }
   e.preventDefault();
-});
+}, { passive: false });
 
 pixelCanvas.addEventListener("touchend", () => {
   isDrawing = false;
   endStroke(); // guardar trazo completo
 });
+
+// Evitar scroll/pull-to-refresh en todo el body mientras se dibuja
+document.body.addEventListener("touchmove", (e) => {
+  if (isDrawing) e.preventDefault();
+}, { passive: false });
 
 // Limpiar cuadrícula
 function clearGrid() {
